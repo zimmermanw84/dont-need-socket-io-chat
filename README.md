@@ -4,7 +4,7 @@ Just playing around with websockets using Node.js.
 
 Warning: Not production ready (obviously)
 
-You can use the dirty client if you like or something like Simple WebSocket Client for Chrome (google it) and if you're hooked up to a Wifi (or any) network you can have someone host the server and use the host's IP address to connect i.e.  
+You can use the dirty client if you like or something like or [Simple WebSocket Client](https://chrome.google.com/webstore/detail/simple-websocket-client/pfdhoblngboilpfeibdedpjgfnlcodoo?hl=en) for Chrome and if you're hooked up to a Wifi (or any) network you can have someone host the server and use the host's IP address to connect i.e.  
 
 If you are the host.
 ```
