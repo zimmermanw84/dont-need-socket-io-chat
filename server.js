@@ -27,8 +27,14 @@ httpServer.listen(PORT, () => {
 // Attach HTTP server to WebSocket Server
 const wsServer = new WebSocketServer({ httpServer });
 
-// Helper - Later I'll put some logic in here
+// Helpers // 
+// Later I'll put some logic in here
 const isAcceptedOrigin = (origin) => { return true; };
+
+// broadcast to all clients
+const broadcast = (msg) => {
+	for (let id in clients) clients[id].sendUTF(msg);
+};
 
 // Handlers //
 
@@ -36,39 +42,36 @@ const isAcceptedOrigin = (origin) => { return true; };
 wsServer.on('request', (request) => {
 	// Check origin
 	// NOTE: This is for fun and NOT production ready however good practice
-	if(isAcceptedOrigin(request.origin)) {
-		// Connection
-		const connection = request.accept(null, request.origin);
-		// Client Id
-		let clientId = ++activeConnections;
-		// Cache client
-		clients[clientId] = connection;
-		// Use UTF8 encoded message
-		const joinMsg = `Client_ID: ${clientId} has joined the channel`;
-		// Emit message to all clients
-		for (let id in clients) clients[id].sendUTF(joinMsg);
-		// Log connection
-		console.log(`${new Date} Connection accepted ${connection.remoteAddress}`);
-
-		// Message
-		connection.on('message', (message) => {
-			// Use UTF8 encoded message
-			const msg = `Client_ID: ${clientId} ${message.utf8Data}`;
-
-			// Emit message to all clients
-			for (let id in clients) clients[id].sendUTF(msg);
-		});
-
-		// Close
-		connection.on('close', (code, description) => {
-			const disconnectMsg = `Client_ID: ${clientId} has disconnected`;
-			for (let id in clients) clients[id].sendUTF(disconnectMsg);
-
-			delete clients[clientId];
-			console.log(`${new Date} Connection ${connection.remoteAddress} disconnected`);
-		});
-
-	} else {
-		// Reject response
+	if(!isAcceptedOrigin(request.origin)) {
+		// No soup for you
+		request.reject();
+		console.log(`${new Date} Connection rejected from origin ${connection.origin}`);
+		return;
 	}
+	// Connection
+	const connection = request.accept(null, request.origin);
+	// Client Id
+	let clientId = ++activeConnections;
+	// Cache client
+	clients[clientId] = connection;
+
+	// Emit message to all clients
+	broadcast(`Client ${clientId}: has joined the channel`);
+
+	// Log connection
+	console.log(`${new Date} Connection accepted ${connection.remoteAddress}`);
+
+	// Message
+	connection.on('message', (message) => {
+		broadcast(`Client ${clientId}: ${message.utf8Data}`);
+	});
+
+	// Close
+	connection.on('close', (code, description) => {
+		broadcast(`Client ${clientId}: has disconnected`);
+		// Remove Client Connection
+		delete clients[clientId];
+		// Log Info
+		console.log(`${new Date} Connection ${connection.remoteAddress} disconnected`);
+	});
 });
