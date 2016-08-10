@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+	<html>
+	<head>
+		<title>Dirty Ws Client</title>
+	</head>
+	<body>
+	<!-- Messages -->
+	<div id="messages"></div>
+	<input id="message" type="text">
+	<input id="sender" type="submit"></input>
+	</body>
+
+	<script type="text/javascript">
+		// WebSocket
+		var ws = new WebSocket('ws://localhost:4000');
+
+		function sendMessage() {
+			var messageInput = document.getElementById('message');
+			ws.send(messageInput.value);
+
+			// clear box
+			messageInput.value = null;
+		}
+
+		// Message handler
+		document.getElementById('sender').addEventListener('click', sendMessage);
+
+		// Listen for response
+		ws.addEventListener("message", function(event) {
+			// Append Message
+			document.getElementById("messages").innerHTML += '<br>' + event.data;
+		});
+
+	</script>
+</html>
